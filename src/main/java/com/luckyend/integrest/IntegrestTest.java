@@ -9,30 +9,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.easetech.easytest.converter.ConverterManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import com.luckyend.integrest.annotations.BasicAuth;
-import com.luckyend.integrest.annotations.Converter;
 import com.luckyend.integrest.annotations.OAuth2;
 import com.luckyend.integrest.auth.BasicAuthPolicy;
 import com.luckyend.integrest.auth.NoAuthPolicy;
 import com.luckyend.integrest.auth.OAuth2Policy;
 import com.luckyend.integrest.auth.SecurityPolicy;
-import com.luckyend.integrest.converters.JsonFlatMapConverter;
 import com.luckyend.integrest.filters.AuthFilter;
 import com.luckyend.integrest.model.TestData;
 import com.luckyend.integrest.runners.IntegrestTestRunner;
 
+import io.restassured.config.HttpClientConfig;
 import io.restassured.specification.RequestSpecification;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RunWith(IntegrestTestRunner.class)
 public abstract class IntegrestTest {
+	
+	@Getter @Setter
+	protected HttpClientConfig clientConfig;
 	
 	@Getter
     protected SecurityPolicy securityPolicy;
@@ -70,11 +72,6 @@ public abstract class IntegrestTest {
     	    	securityPolicy = new NoAuthPolicy();
     	    	authenticationEnabled = false;
         	}
-    	}
-    	
-    	Converter converterAnnotation = this.getClass().getAnnotation(Converter.class);
-    	if (converterAnnotation != null) {
-    		 ConverterManager.registerConverter(JsonFlatMapConverter.class);
     	}
 	}
 	

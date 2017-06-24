@@ -8,13 +8,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.luckyend.integrest.model.TestData;
+import com.luckyend.integrest.converters.AbstractIntegrestConverter;
 
 @Inherited
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target({ TYPE, METHOD })
 public @interface Converter {
 	
-	Class<? extends org.easetech.easytest.converter.Converter<TestData>> value();
+	Class<? extends AbstractIntegrestConverter> value();
 	
 }

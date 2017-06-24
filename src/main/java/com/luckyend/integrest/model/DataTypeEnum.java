@@ -3,6 +3,6 @@ package com.luckyend.integrest.model;
 
 public enum DataTypeEnum {
 
-	JSON, XML
+	JSON, XML, MULTIPART_FORMDATA
 
 }

@@ -1,6 +1,7 @@
 
 package com.luckyend.integrest.runners;
 
+import org.apache.http.entity.mime.HttpMultipartMode;
 import org.easetech.easytest.annotation.Converters;
 import org.easetech.easytest.converter.ConverterManager;
 import org.easetech.easytest.runner.DataDrivenTestRunner;
@@ -39,7 +40,6 @@ public class IntegrestTestRunner extends DataDrivenTestRunner {
         if (testInstance instanceof IntegrestTest){
         	IntegrestTest it = (IntegrestTest) testInstance;
 	        loadIntegrestConfig(it);
-	        registerIntegrestConverters(testInstance.getClass().getAnnotation(com.luckyend.integrest.annotations.Converters.class));
 	        registerIntegrestConverter(testInstance.getClass().getAnnotation(com.luckyend.integrest.annotations.Converter.class));
 //	        if (it.isAuthenticationEnabled()) loadIntegrestSecurityPolicy(it);
 //	        else RestAssured.authentication = RestAssured.DEFAULT_AUTH;
@@ -54,31 +54,28 @@ public class IntegrestTestRunner extends DataDrivenTestRunner {
 
     }
     
-	private void registerIntegrestConverters(com.luckyend.integrest.annotations.Converters converters) {
-		if (converters != null) {
-            Class<? extends com.luckyend.integrest.annotations.Converter>[] convertersArray = converters.value();
-            if (convertersArray != null && convertersArray.length > 0) {
-                for (Class<? extends com.luckyend.integrest.annotations.Converter> c : convertersArray) {
-                    ConverterManager.registerConverter(c);
-                }
-            }
-        }
-	}
-	
 	private void registerIntegrestConverter(com.luckyend.integrest.annotations.Converter converter) {
 		if (converter != null) {
+    		ConverterManager.cleanConverters();
     		ConverterManager.registerConverter(converter.value());
         } 
 	}
 	
 	protected void loadIntegrestConfig(IntegrestTest testInstance) {
 		//TODO verificar si conviene aqui al crear el test o antes para toda la clase configurar esto
-		HttpClientConfig clientConfig;
-		if (testInstance.isReuseHttpClient()) {
-			clientConfig = HttpClientConfig.httpClientConfig().reuseHttpClientInstance();
+		HttpClientConfig clientConfig = testInstance.getClientConfig();
+		if (clientConfig == null){
+			clientConfig = HttpClientConfig.httpClientConfig().httpMultipartMode(HttpMultipartMode.RFC6532);
+			
+			if (testInstance.isReuseHttpClient()) {
+				clientConfig = clientConfig.reuseHttpClientInstance();
+			} else {
+				clientConfig = clientConfig.dontReuseHttpClientInstance();
+			}
 		} else {
-			clientConfig = HttpClientConfig.httpClientConfig().dontReuseHttpClientInstance();
+			log.warn("Http client configuration detected (reuseHttpClient omitted).");
 		}
+		
 		RestAssured.config = RestAssured.config().httpClient(clientConfig);
 		/****/
 		
@@ -90,7 +87,6 @@ public class IntegrestTestRunner extends DataDrivenTestRunner {
      * Returns a {@link Statement} that invokes {@code method} on {@code test}
      */
     protected Statement methodInvoker(FrameworkMethod method, Object testInstance) {
-        registerIntegrestConverters(method.getAnnotation(com.luckyend.integrest.annotations.Converters.class));
         registerIntegrestConverter(method.getAnnotation(com.luckyend.integrest.annotations.Converter.class));
         
         return super.methodInvoker(method, testInstance);
